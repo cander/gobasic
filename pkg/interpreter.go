@@ -2,12 +2,12 @@ package gobasic
 
 import "fmt"
 
-type interpreter struct{}
+type Interpreter struct{}
 
-func NewInterpreter() interpreter {
-	return interpreter{}
+func NewInterpreter() Interpreter {
+	return Interpreter{}
 }
 
-func (i interpreter) Dump() {
-	fmt.Printf("interpreter: %v\n", i)
+func (i Interpreter) Dump() {
+	fmt.Printf("Interpreter state: %v\n", i)
 }
