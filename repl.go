@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 
 	gobasic "cander.org/gobasic/pkg"
@@ -29,7 +31,9 @@ func readLoop(intr gobasic.Interpreter) error {
 		}
 
 		fmt.Printf("read input: %s\n", input)
-		parseUserCommand(input, intr)
+		if input != "" {
+			parseUserCommand(input, intr)
+		}
 		fmt.Print("gobasic>> ")
 	}
 
@@ -41,10 +45,16 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
 	toks := strings.Fields(cmdLine)
 	cmd := strings.ToUpper(toks[0])
 
-	switch cmd {
-	case "DUMP":
-		intr.Dump()
-	default:
-		fmt.Printf("Unrecognized command - '%s'\n", cmd)
+	justDigits, _ := regexp.MatchString(`^\d+$`, cmd)
+	if justDigits {
+		lineNo, _ := strconv.Atoi(cmd)
+		intr.UpsertLine(lineNo, cmd) // fix
+	} else {
+		switch cmd {
+		case "DUMP":
+			intr.Dump()
+		default:
+			fmt.Printf("Unrecognized command - '%s'\n", cmd)
+		}
 	}
 }
