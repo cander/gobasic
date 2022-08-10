@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 
 	gobasic "cander.org/gobasic/pkg"
@@ -45,10 +44,12 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
 	toks := strings.Fields(cmdLine)
 	cmd := strings.ToUpper(toks[0])
 
+	// could re-do this logic to look for the line number in the whole line before splitting the line
 	justDigits, _ := regexp.MatchString(`^\d+$`, cmd)
 	if justDigits {
-		lineNo, _ := strconv.Atoi(cmd)
-		intr.UpsertLine(lineNo, cmd) // fix
+		stmt, _ := gobasic.ParseStatement(cmdLine)
+		fmt.Printf("created statement %v\n", stmt)
+		intr.UpsertLine(stmt)
 	} else {
 		switch cmd {
 		case "DUMP":
