@@ -8,6 +8,8 @@ import (
 
 type Statement interface {
 	Execute() (int, error)
+	LineNo() int
+	Text() string
 }
 
 // for the moment, statements are not polymorphic. We can add that later befind the Statement interface
@@ -29,4 +31,12 @@ func (s statement) Execute() (int, error) {
 	fmt.Printf("executing: %s", s.text)
 	// switch on type of statement b/c we're not doing polymorphism, yet
 	return 0, nil
+}
+
+func (s statement) LineNo() int {
+	return s.lineNo
+}
+
+func (s statement) Text() string {
+	return s.text
 }
