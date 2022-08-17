@@ -18,6 +18,8 @@ type statement struct {
 	text   string
 }
 
+const NEXT_LINE = -1
+
 func ParseStatement(line string) (Statement, error) {
 	toks := strings.Fields(line)
 	lineNo, _ := strconv.Atoi(toks[0]) // ATM we assume all digits already
@@ -28,9 +30,9 @@ func ParseStatement(line string) (Statement, error) {
 }
 
 func (s statement) Execute() (int, error) {
-	fmt.Printf("executing: %s", s.text)
+	fmt.Printf("executing: %s\n", s.text)
 	// switch on type of statement b/c we're not doing polymorphism, yet
-	return 0, nil
+	return NEXT_LINE, nil
 }
 
 func (s statement) LineNo() int {

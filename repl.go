@@ -54,6 +54,8 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
 		switch cmd {
 		case "DUMP":
 			intr.Dump()
+		case "RUN":
+			intr.Run()
 		default:
 			fmt.Printf("Unrecognized command - '%s'\n", cmd)
 		}

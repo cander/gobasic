@@ -39,3 +39,7 @@ func (p program) fetchStatement(pc programCounter) (Statement, error) {
 
 	return result, nil
 }
+
+func (p program) dump() {
+	fmt.Printf("Program state: %v\n", p)
+}
