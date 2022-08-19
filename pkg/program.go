@@ -3,6 +3,7 @@ package gobasic
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 type program struct {
@@ -26,10 +27,10 @@ func (p program) upsertStatement(stmt Statement) {
 
 func (p *program) initialize() programCounter {
 	p.statementIndex = make([]int, 0, len(p.statements))
-	// TODO - sort the line numbers before indexing
 	for lineNo := range p.statements {
 		p.statementIndex = append(p.statementIndex, lineNo)
 	}
+	sort.Ints(p.statementIndex)
 
 	return firstPC
 }
@@ -62,6 +63,16 @@ func (p program) nextPC(currentPc programCounter, jumpLoc int) (programCounter, 
 
 func (p program) programSize() int {
 	return len(p.statementIndex)
+}
+
+func (p program) listStatements() []Statement {
+	result := make([]Statement, 0, len(p.statements))
+
+	for _, lineNo := range p.statementIndex {
+		result = append(result, p.statements[lineNo])
+	}
+
+	return result
 }
 
 func (p program) dump() {

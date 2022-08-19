@@ -54,6 +54,8 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
 		switch cmd {
 		case "DUMP":
 			intr.Dump()
+		case "LIST":
+			intr.List()
 		case "RUN":
 			intr.Run()
 		default:

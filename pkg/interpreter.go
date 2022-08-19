@@ -31,6 +31,14 @@ func (i Interpreter) Run() { // need to return an error?
 	}
 }
 
+func (i Interpreter) List() {
+	i.prog.initialize() // this is kinda kludgey - just re-index after each upsert
+	fmt.Println("listing...")
+	for _, s := range i.prog.listStatements() {
+		fmt.Println(s)
+	}
+}
+
 func (i Interpreter) Dump() {
 	fmt.Printf("Interpreter state: %v\n", i)
 	i.prog.dump()

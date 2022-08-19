@@ -11,6 +11,7 @@ type Statement interface {
 	Execute() (int, error)
 	LineNo() int
 	Text() string
+	String() string
 }
 
 // for the moment, statements are not polymorphic. We can add that later befind the Statement interface
@@ -55,4 +56,9 @@ func (s statement) LineNo() int {
 
 func (s statement) Text() string {
 	return s.text
+}
+
+func (s statement) String() string {
+	// NB: text is the whole line with the line number - gag
+	return fmt.Sprintf("%5d %s", s.lineNo, s.text)
 }
