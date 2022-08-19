@@ -14,15 +14,21 @@ func (i Interpreter) UpsertLine(stmt Statement) {
 	i.prog.upsertStatement(stmt)
 }
 
-func (i Interpreter) Run() {
+func (i Interpreter) Run() { // need to return an error?
 	pc := i.prog.initialize()
 
-	stmt, err := i.prog.fetchStatement(pc)
-	nextLineNo, err := stmt.Execute()
+	for {
+		stmt, _ := i.prog.fetchStatement(pc)
+		// TODO: handle this error - panic?
+		nextLineNo, err := stmt.Execute()
 
-	fmt.Printf("nextLineNo = %d, err = %v\n", nextLineNo, err)
-
-	fmt.Println("only executing one statement")
+		fmt.Printf("nextLineNo = %d, err = %v\n", nextLineNo, err)
+		pc, err = i.prog.nextPC(pc, nextLineNo)
+		if err == errEndOfProgram {
+			fmt.Println("Program complete!")
+			break
+		}
+	}
 }
 
 func (i Interpreter) Dump() {
