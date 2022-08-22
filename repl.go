@@ -10,9 +10,9 @@ import (
 	gobasic "cander.org/gobasic/pkg"
 )
 
-func main() {
-	fmt.Println("hello world")
+const prompt = "gobasic>> "
 
+func main() {
 	intr := gobasic.NewInterpreter()
 
 	readLoop(intr)
@@ -20,7 +20,7 @@ func main() {
 
 func readLoop(intr gobasic.Interpreter) error {
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("gobasic>> ")
+	fmt.Print(prompt)
 	for scanner.Scan() {
 		input := scanner.Text()
 
@@ -31,24 +31,29 @@ func readLoop(intr gobasic.Interpreter) error {
 
 		fmt.Printf("read input: %s\n", input)
 		if input != "" {
-			parseUserCommand(input, intr)
+			if err := parseUserCommand(input, intr); err != nil {
+				fmt.Printf("ERROR: %v\n", err)
+			}
 		}
-		fmt.Print("gobasic>> ")
+
+		fmt.Print(prompt)
 	}
 
 	fmt.Println("\n\nBye!")
 	return nil
 }
 
-func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
+func parseUserCommand(cmdLine string, intr gobasic.Interpreter) error {
 	toks := strings.Fields(cmdLine)
 	cmd := strings.ToUpper(toks[0])
 
 	// could re-do this logic to look for the line number in the whole line before splitting the line
 	justDigits, _ := regexp.MatchString(`^\d+$`, cmd)
 	if justDigits {
-		stmt, _ := gobasic.ParseStatement(cmdLine)
-		fmt.Printf("created statement %v\n", stmt)
+		stmt, err := gobasic.ParseStatement(cmdLine)
+		if err != nil {
+			return err
+		}
 		intr.UpsertLine(stmt)
 	} else {
 		switch cmd {
@@ -62,4 +67,5 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) {
 			fmt.Printf("Unrecognized command - '%s'\n", cmd)
 		}
 	}
+	return nil
 }
