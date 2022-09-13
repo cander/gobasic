@@ -1,13 +1,18 @@
 package gobasic
 
-import "fmt"
+import (
+	"fmt"
+
+	"gopl.io/ch7/eval"
+)
 
 type Interpreter struct {
 	prog program
+	env  eval.Env
 }
 
 func NewInterpreter() Interpreter {
-	return Interpreter{newProgram()}
+	return Interpreter{newProgram(), eval.Env{}}
 }
 
 func (i Interpreter) UpsertLine(stmt Statement) {
@@ -42,4 +47,6 @@ func (i Interpreter) List() {
 func (i Interpreter) Dump() {
 	fmt.Printf("Interpreter state: %v\n", i)
 	i.prog.dump()
+	fmt.Println("Varaibles:")
+	fmt.Println(i.env)
 }
