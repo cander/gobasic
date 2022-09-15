@@ -15,7 +15,7 @@ func TestParseStatement(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"simple print", "100 print hi", statement{100, "PRINT", "100 print hi", "hi"}, false},
+		{"simple print", "100 print hi", statement{100, "PRINT", "100 print hi", "hi", "", nil}, false},
 
 		{"no opcode", "100", nil, true},
 		{"invalid opcode", "100 BARF", nil, true},

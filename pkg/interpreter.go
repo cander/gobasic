@@ -25,7 +25,7 @@ func (i Interpreter) Run() { // need to return an error?
 	for {
 		stmt, _ := i.prog.fetchStatement(pc)
 		// TODO: handle this error - panic?
-		nextLineNo, err := stmt.Execute()
+		nextLineNo, err := stmt.Execute(i.env)
 
 		fmt.Printf("nextLineNo = %d, err = %v\n", nextLineNo, err)
 		pc, err = i.prog.nextPC(pc, nextLineNo)
