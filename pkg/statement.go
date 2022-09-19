@@ -12,7 +12,6 @@ import (
 type Statement interface {
 	Execute(env eval.Env) (int, error)
 	LineNo() int
-	Text() string
 	String() string
 }
 
@@ -20,12 +19,9 @@ type Statement interface {
 // it would make sense for different types of statements to have different data - currently we assume
 // that "rest" can work for all statements.
 type statement struct {
-	lineNo    int
-	opCode    string
-	wholeLine string
-	rest      string
-	letVar    eval.Var
-	letRhs    eval.Expr
+	lineNo int
+	opCode string
+	rest   string
 }
 
 const NEXT_LINE = -1
@@ -43,61 +39,88 @@ func ParseStatement(line string) (Statement, error) {
 	lineOpExp := regexp.MustCompile(`^.*` + toks[0] + `\s+` + toks[1] + `\s+`)
 	rest := lineOpExp.ReplaceAllString(line, "")
 	var stmt Statement
+	var err error
 
 	switch opCode {
 	case "LET":
-		// 10 LET A = 5
-		// should check num toks
-		foundVar, err := regexp.MatchString(`^[[:alpha:]][[:alnum:]]*$`, toks[2])
-		if !foundVar || err != nil {
-			return nil, fmt.Errorf("invalid variable name: %s", toks[2])
-		}
-		varName := eval.Var(toks[2])
-		if toks[3] != "=" {
-			return nil, fmt.Errorf("invalid LET statement: %s", rest)
-		}
-		lhsExp := regexp.MustCompile(`^.*=\s+`) // everything up to equals
-		rhs := lhsExp.ReplaceAllString(line, "")
-
-		rhsExpr, err := eval.Parse(rhs)
-		if err != nil {
-			return nil, fmt.Errorf("invalid LET statement: %v", err)
-		}
-		fmt.Printf("parsed LET %s = %v\n", varName, rhsExpr)
-		stmt = statement{lineNo, opCode, line, rest, varName, rhsExpr}
+		stmt, err = parseLet(lineNo, rest)
 	case "PRINT":
-		stmt = statement{lineNo, opCode, line, rest, "", nil}
+		stmt, err = parsePrint(lineNo, rest)
 	default:
 		return nil, fmt.Errorf("invalid opcode: %s", opCode)
 	}
 
-	return stmt, nil
+	return stmt, err
 }
 
 func (s statement) Execute(env eval.Env) (int, error) {
-	fmt.Printf("executing: %s\n", s.wholeLine)
-	// switch on type of statement b/c we're not doing polymorphism, yet
-	switch s.opCode {
-	case "LET":
-		env[s.letVar] = s.letRhs.Eval(env)
-	case "PRINT":
-		fmt.Println(s.rest)
-	default:
-		fmt.Println("unrecognized op code - shouldn't happen")
-		//throw an error
-	}
+	fmt.Printf("Error executing: %s\n", s.String())
 
-	return NEXT_LINE, nil
+	return 0, fmt.Errorf("unrecognized statement: %v", s)
 }
 
 func (s statement) LineNo() int {
 	return s.lineNo
 }
 
-func (s statement) Text() string {
-	return s.wholeLine
-}
-
 func (s statement) String() string {
 	return fmt.Sprintf("%5d %s %s", s.lineNo, s.opCode, s.rest)
+}
+
+// PRINT
+
+type printStatement struct {
+	statement
+	literalString string
+}
+
+func parsePrint(lineNo int, rest string) (Statement, error) {
+	result := printStatement{statement{lineNo, "PRINT", rest}, rest}
+	return result, nil
+}
+
+func (p printStatement) Execute(env eval.Env) (int, error) {
+	fmt.Println(p.literalString)
+	return NEXT_LINE, nil
+}
+
+// LET
+
+type letStatement struct {
+	statement
+	varName eval.Var
+	letRhs  eval.Expr
+}
+
+func parseLet(lineNo int, rest string) (Statement, error) {
+	// rest: A = 5
+	toks := strings.Fields(rest)
+	// should check num toks
+	if len(toks) < 3 {
+		return nil, fmt.Errorf("invalid LET statement: LET %s", rest)
+	}
+	foundVar, err := regexp.MatchString(`^[[:alpha:]][[:alnum:]]*$`, toks[0])
+	if !foundVar || err != nil {
+		return nil, fmt.Errorf("invalid variable name: %s", toks[2])
+	}
+	varName := eval.Var(toks[0])
+	if toks[1] != "=" {
+		return nil, fmt.Errorf("invalid LET statement: %s", rest)
+	}
+	lhsExp := regexp.MustCompile(`^.*=\s+`) // everything up to equals
+	rhs := lhsExp.ReplaceAllString(rest, "")
+
+	rhsExpr, err := eval.Parse(rhs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid LET statement: %v", err)
+	}
+
+	result := letStatement{statement{lineNo, "LET", rest}, varName, rhsExpr}
+
+	return result, nil
+}
+
+func (l letStatement) Execute(env eval.Env) (int, error) {
+	env[l.varName] = l.letRhs.Eval(env)
+	return NEXT_LINE, nil
 }
