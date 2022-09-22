@@ -39,6 +39,33 @@ func TestParseStatement(t *testing.T) {
 	}
 }
 
+func TestParsePrint(t *testing.T) {
+	tests := []struct {
+		name        string
+		rest        string
+		wantLiteral string
+		wantErr     bool
+	}{
+		// this is kinda lame now b/c we don't support print expressions yet
+		{"simple print", "hello world", "hello world", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt, err := parsePrint(100, tt.rest)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parsePrint() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				assert.Equal(t, "*gobasic.printStatement", reflect.TypeOf(stmt).String(), "not a PRINT statement")
+				assert.Equal(t, tt.wantLiteral, stmt.literalString, "literal string")
+			}
+		})
+	}
+}
+
 func TestParseLet(t *testing.T) {
 	tests := []struct {
 		name    string
