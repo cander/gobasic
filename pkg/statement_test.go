@@ -9,26 +9,30 @@ func TestParse(t *testing.T) {}
 
 func TestParseStatement(t *testing.T) {
 	tests := []struct {
-		name    string
-		args    string
-		want    Statement
-		wantErr bool
+		name     string
+		args     string
+		wantType string
+		wantErr  bool
 	}{
-		// TODO: Add test cases.
-		// {"simple print", "100 print hi", printStatement{statement{100, "PRINT", "hi", "", nil}, "HI"}, false},
+		{"simple print", "10 print hi", "printStatement", false},
+		{"simple let", "10 let a = 69", "letStatement", false},
 
-		{"no opcode", "100", nil, true},
-		{"invalid opcode", "100 BARF", nil, true},
+		{"no opcode", "10", "", true},
+		{"invalid opcode", "10 BARF", "", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseStatement(tt.args)
+			stmt, err := ParseStatement(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseStatement() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseStatement() = \"%v\", want \"%v\"", got, tt.want)
+
+			if !tt.wantErr {
+				stmtType := reflect.TypeOf(stmt).String()
+				if stmtType != ("gobasic." + tt.wantType) {
+					t.Errorf("Expected Statement type %s, found %s", tt.wantType, stmtType)
+				}
 			}
 		})
 	}
