@@ -74,9 +74,9 @@ type printStatement struct {
 	literalString string
 }
 
-func parsePrint(lineNo int, rest string) (Statement, error) {
+func parsePrint(lineNo int, rest string) (*printStatement, error) {
 	result := printStatement{statement{lineNo, "PRINT", rest}, rest}
-	return result, nil
+	return &result, nil
 }
 
 func (p printStatement) Execute(env eval.Env) (int, error) {
@@ -92,7 +92,7 @@ type letStatement struct {
 	letRhs  eval.Expr
 }
 
-func parseLet(lineNo int, rest string) (Statement, error) {
+func parseLet(lineNo int, rest string) (*letStatement, error) {
 	// rest: A = 5
 	toks := strings.Fields(rest)
 	// should check num toks
@@ -117,7 +117,7 @@ func parseLet(lineNo int, rest string) (Statement, error) {
 
 	result := letStatement{statement{lineNo, "LET", rest}, varName, rhsExpr}
 
-	return result, nil
+	return &result, nil
 }
 
 func (l letStatement) Execute(env eval.Env) (int, error) {
