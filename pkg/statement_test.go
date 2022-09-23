@@ -17,7 +17,7 @@ func TestParseStatement(t *testing.T) {
 		wantType string
 		wantErr  bool
 	}{
-		{"simple print", "10 print hi", "printStatement", false},
+		{"simple print", "10 print a", "printStatement", false},
 		{"simple let", "10 let a = 69", "letStatement", false},
 
 		{"no opcode", "10", "", true},
@@ -43,11 +43,12 @@ func TestParsePrint(t *testing.T) {
 	tests := []struct {
 		name        string
 		rest        string
-		wantLiteral string
 		wantErr     bool
+		wantLiteral string
+		wantExpr    bool
 	}{
-		// this is kinda lame now b/c we don't support print expressions yet
-		{"simple print", "hello world", "hello world", false},
+		{"print literal", `"hello world"`, false, "hello world", false},
+		{"print expr", `A + 5`, false, "", true},
 	}
 
 	for _, tt := range tests {
@@ -60,7 +61,12 @@ func TestParsePrint(t *testing.T) {
 
 			if !tt.wantErr {
 				assert.Equal(t, "*gobasic.printStatement", reflect.TypeOf(stmt).String(), "not a PRINT statement")
-				assert.Equal(t, tt.wantLiteral, stmt.literalString, "literal string")
+				if tt.wantExpr {
+					assert.NotNil(t, stmt.expr, "expression")
+				} else {
+					assert.Equal(t, tt.wantLiteral, stmt.literalString, "literal string")
+				}
+
 			}
 		})
 	}
@@ -74,7 +80,10 @@ func TestParseLet(t *testing.T) {
 		wantErr bool
 	}{
 		{"simple let", "a = 69", "a", false},
+		{"many chars let", "cat = 69", "cat", false},
+		{"alphanumeric let", "a42 = 69", "a42", false},
 
+		{"backwards", "9 = A", "", true},
 		{"incomplete 1", "10", "", true},
 		{"incomplete 2", "a =", "", true},
 	}

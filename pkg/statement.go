@@ -72,15 +72,33 @@ func (s statement) String() string {
 type printStatement struct {
 	statement
 	literalString string
+	expr          eval.Expr
 }
 
 func parsePrint(lineNo int, rest string) (*printStatement, error) {
-	result := printStatement{statement{lineNo, "PRINT", rest}, rest}
+	var result printStatement
+	re := regexp.MustCompile(`^\s*"([^"]+)"\s*$`)
+	quotedStrings := re.FindStringSubmatch(rest)
+	if quotedStrings != nil {
+		result = printStatement{statement{lineNo, "PRINT", rest}, quotedStrings[1], nil}
+	} else {
+		expr, err := eval.Parse(rest)
+		if err == nil {
+			result = printStatement{statement{lineNo, "PRINT", rest}, "", expr}
+		} else {
+			return nil, err
+		}
+	}
+
 	return &result, nil
 }
 
 func (p printStatement) Execute(env eval.Env) (int, error) {
-	fmt.Println(p.literalString)
+	if p.expr != nil {
+		fmt.Println(p.expr.Eval(env))
+	} else {
+		fmt.Println(p.literalString)
+	}
 	return NEXT_LINE, nil
 }
 
