@@ -7,7 +7,8 @@ import (
 )
 
 type program struct {
-	statements     map[int]Statement
+	statements map[int]Statement
+	// zero-based array mapping PC locations (0 to N) to the line number at that location
 	statementIndex []int
 }
 
@@ -57,7 +58,13 @@ func (p program) nextPC(currentPc programCounter, jumpLoc int) (programCounter, 
 		}
 		return currentPc, nil
 	} else {
-		panic("GOTO not supported - yet")
+		// this is a gross linear search, but you shouldn't be using GOTOs
+		for pc, lineNo := range p.statementIndex {
+			if lineNo == jumpLoc {
+				return programCounter(pc), nil
+			}
+		}
+		return 0, fmt.Errorf("GOTO - line not found: %d", jumpLoc)
 	}
 }
 

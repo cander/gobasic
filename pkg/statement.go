@@ -42,6 +42,8 @@ func ParseStatement(line string) (Statement, error) {
 	var err error
 
 	switch opCode {
+	case "GOTO":
+		stmt, err = parseGoto(lineNo, rest)
 	case "LET":
 		stmt, err = parseLet(lineNo, rest)
 	case "PRINT":
@@ -65,6 +67,33 @@ func (s statement) LineNo() int {
 
 func (s statement) String() string {
 	return fmt.Sprintf("%5d %s %s", s.lineNo, s.opCode, s.rest)
+}
+
+// GOTO
+
+type gotoStatement struct {
+	statement
+	destLineNo int
+}
+
+func parseGoto(lineNo int, rest string) (*gotoStatement, error) {
+	var result gotoStatement
+	rest = strings.TrimSpace(rest)
+	_, err := regexp.MatchString(`^\s*\d+\s*$`, rest)
+	if err == nil {
+		destLineNo, err := strconv.Atoi(rest)
+		if err == nil {
+			result = gotoStatement{statement{lineNo, "GOTO", rest}, destLineNo}
+		} else {
+			return nil, fmt.Errorf("invalid line number: %s", rest)
+		}
+	}
+
+	return &result, nil
+}
+
+func (g gotoStatement) Execute(env eval.Env) (int, error) {
+	return g.destLineNo, nil
 }
 
 // PRINT

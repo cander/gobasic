@@ -32,6 +32,9 @@ func (i Interpreter) Run() { // need to return an error?
 		if err == errEndOfProgram {
 			fmt.Println("Program complete!")
 			break
+		} else if err != nil {
+			fmt.Printf("ERROR: %s\n", err)
+			break
 		}
 	}
 }

@@ -46,3 +46,43 @@ func Test_statement_ordering(t *testing.T) {
 	assert.Equal(t, 10, stmts[0].LineNo(), "first statement is 10")
 	assert.Equal(t, 20, stmts[1].LineNo(), "second statement is 20")
 }
+
+func loadProgram(t *testing.T, lines []string) program {
+	result := newProgram()
+	for _, line := range lines {
+		stmt, err := ParseStatement(line)
+		assert.NoError(t, err, "invalid program line")
+		result.upsertStatement(stmt)
+	}
+	result.initialize()
+	return result
+}
+
+func TestNextPc(t *testing.T) {
+	tests := []struct {
+		name      string
+		lines     []string
+		currentPc programCounter
+		jumpLoc   int
+		wantErr   bool
+		wantPc    programCounter
+	}{
+		{"simple next", []string{"10 let a = 5", "20 let b = a"}, firstPC, NEXT_LINE, false, 1},
+		{"program end", []string{"10 let a = 5", "20 let b = a"}, 1, NEXT_LINE, true, 0},
+
+		{"simple goto", []string{"10 goto 30", "20 let b = a", "30 print b"}, firstPC, 30, false, 2},
+		{"invalid goto dest", []string{"10 goto 30"}, firstPC, 30, true, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prog := loadProgram(t, tt.lines)
+			nextPc, err := prog.nextPC(tt.currentPc, tt.jumpLoc)
+			if tt.wantErr {
+				assert.NotNil(t, err, "expected an err")
+			} else {
+				assert.Equal(t, tt.wantPc, nextPc, "incorrect PC")
+			}
+		})
+	}
+}
