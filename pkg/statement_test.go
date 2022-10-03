@@ -17,9 +17,9 @@ func TestParseStatement(t *testing.T) {
 		wantType string
 		wantErr  bool
 	}{
-		{"simple print", "10 print a", "printStatement", false},
-		{"simple let", "10 let a = 69", "letStatement", false},
 		{"simple goto", "10 goto 20", "gotoStatement", false},
+		{"simple let", "10 let a = 69", "letStatement", false},
+		{"simple print", "10 print a", "printStatement", false},
 
 		{"no opcode", "10", "", true},
 		{"invalid opcode", "10 BARF", "", true},
@@ -71,6 +71,37 @@ func TestParseGoto(t *testing.T) {
 	}
 }
 
+func TestParseLet(t *testing.T) {
+	tests := []struct {
+		name    string
+		rest    string
+		wantLhs string
+		wantErr bool
+	}{
+		{"simple let", "a = 69", "a", false},
+		{"many chars let", "cat = 69", "cat", false},
+		{"alphanumeric let", "a42 = 69", "a42", false},
+
+		{"backwards", "9 = A", "", true},
+		{"incomplete 1", "10", "", true},
+		{"incomplete 2", "a =", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt, err := parseLet(100, tt.rest)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseLet() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				assert.Equal(t, "*gobasic.letStatement", reflect.TypeOf(stmt).String(), "not a LET statement")
+				assert.Equal(t, eval.Var(tt.wantLhs), stmt.varName, "LHS varaible name")
+			}
+		})
+	}
+}
+
 func TestParsePrint(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -99,37 +130,6 @@ func TestParsePrint(t *testing.T) {
 					assert.Equal(t, tt.wantLiteral, stmt.literalString, "literal string")
 				}
 
-			}
-		})
-	}
-}
-
-func TestParseLet(t *testing.T) {
-	tests := []struct {
-		name    string
-		rest    string
-		wantLhs string
-		wantErr bool
-	}{
-		{"simple let", "a = 69", "a", false},
-		{"many chars let", "cat = 69", "cat", false},
-		{"alphanumeric let", "a42 = 69", "a42", false},
-
-		{"backwards", "9 = A", "", true},
-		{"incomplete 1", "10", "", true},
-		{"incomplete 2", "a =", "", true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stmt, err := parseLet(100, tt.rest)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("parseLet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if !tt.wantErr {
-				assert.Equal(t, "*gobasic.letStatement", reflect.TypeOf(stmt).String(), "not a LET statement")
-				assert.Equal(t, eval.Var(tt.wantLhs), stmt.varName, "LHS varaible name")
 			}
 		})
 	}
