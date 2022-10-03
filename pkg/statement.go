@@ -1,7 +1,9 @@
 package gobasic
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -46,6 +48,8 @@ func ParseStatement(line string) (Statement, error) {
 		stmt, err = parseGoto(lineNo, rest)
 	case "LET":
 		stmt, err = parseLet(lineNo, rest)
+	case "INPUT":
+		stmt, err = parseInput(lineNo, rest)
 	case "PRINT":
 		stmt, err = parsePrint(lineNo, rest)
 	default:
@@ -96,6 +100,50 @@ func (g gotoStatement) Execute(env eval.Env) (int, error) {
 	return g.destLineNo, nil
 }
 
+// INPUT
+
+type inputStatement struct {
+	statement
+	varName eval.Var
+}
+
+func parseInput(lineNo int, rest string) (*inputStatement, error) {
+	foundVar, err := regexp.MatchString(`^[[:alpha:]][[:alnum:]]*$`, rest)
+	if !foundVar || err != nil {
+		return nil, fmt.Errorf("invalid variable name: %s", rest)
+	}
+	varName := eval.Var(rest)
+	result := inputStatement{statement{lineNo, "LET", rest}, varName}
+
+	return &result, nil
+}
+
+func (i inputStatement) Execute(env eval.Env) (int, error) {
+	var inputValue float64 = 0
+	var err error
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		inputStr := scanner.Text()
+		if err := scanner.Err(); err != nil {
+			return 0, fmt.Errorf("error reading INPUT: %v", err)
+		}
+
+		inputStr = strings.TrimSpace(inputStr)
+		if len(inputStr) > 0 {
+			inputValue, err = strconv.ParseFloat(inputStr, 64)
+			if err != nil {
+				return 0, fmt.Errorf("error converting INPUT: %v", err)
+			}
+			break
+		}
+	}
+
+	env[i.varName] = inputValue
+
+	return NEXT_LINE, nil
+}
+
 // LET
 
 type letStatement struct {
@@ -113,7 +161,7 @@ func parseLet(lineNo int, rest string) (*letStatement, error) {
 	}
 	foundVar, err := regexp.MatchString(`^[[:alpha:]][[:alnum:]]*$`, toks[0])
 	if !foundVar || err != nil {
-		return nil, fmt.Errorf("invalid variable name: %s", toks[2])
+		return nil, fmt.Errorf("invalid variable name: %s", toks[0])
 	}
 	varName := eval.Var(toks[0])
 	if toks[1] != "=" {
@@ -134,6 +182,7 @@ func parseLet(lineNo int, rest string) (*letStatement, error) {
 
 func (l letStatement) Execute(env eval.Env) (int, error) {
 	env[l.varName] = l.letRhs.Eval(env)
+
 	return NEXT_LINE, nil
 }
 

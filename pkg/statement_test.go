@@ -19,6 +19,7 @@ func TestParseStatement(t *testing.T) {
 	}{
 		{"simple goto", "10 goto 20", "gotoStatement", false},
 		{"simple let", "10 let a = 69", "letStatement", false},
+		{"simple input", "10 input a", "inputStatement", false},
 		{"simple print", "10 print a", "printStatement", false},
 
 		{"no opcode", "10", "", true},
@@ -97,6 +98,35 @@ func TestParseLet(t *testing.T) {
 			if !tt.wantErr {
 				assert.Equal(t, "*gobasic.letStatement", reflect.TypeOf(stmt).String(), "not a LET statement")
 				assert.Equal(t, eval.Var(tt.wantLhs), stmt.varName, "LHS varaible name")
+			}
+		})
+	}
+}
+
+func TestParseInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		rest    string
+		wantVar string
+		wantErr bool
+	}{
+		{"simple input", "a", "a", false},
+
+		{"extra garbage", "A = 69", "", true},
+		{"invalid var name", "10", "", true},
+		{"incomplete", "", "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stmt, err := parseInput(100, tt.rest)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr {
+				assert.Equal(t, "*gobasic.inputStatement", reflect.TypeOf(stmt).String(), "not an INPUT statement")
+				assert.Equal(t, eval.Var(tt.wantVar), stmt.varName, "varaible name")
 			}
 		})
 	}
