@@ -1,7 +1,9 @@
 package gobasic
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"gopl.io/ch7/eval"
 )
@@ -26,8 +28,11 @@ func (i Interpreter) Run() { // need to return an error?
 		stmt, _ := i.prog.fetchStatement(pc)
 		// TODO: handle this error - panic?
 		nextLineNo, err := stmt.Execute(i.env)
+		if err != nil {
+			fmt.Printf("ERROR: failed to execute \"%s\" - %s \n", stmt, err)
+			break
+		}
 
-		fmt.Printf("nextLineNo = %d, err = %v\n", nextLineNo, err)
 		pc, err = i.prog.nextPC(pc, nextLineNo)
 		if err == errEndOfProgram {
 			fmt.Println("Program complete!")
@@ -52,4 +57,30 @@ func (i Interpreter) Dump() {
 	i.prog.dump()
 	fmt.Println("Varaibles:")
 	fmt.Println(i.env)
+}
+
+func (i *Interpreter) Load(fileName string) error {
+	fileIn, err := os.Open(fileName)
+	if err != nil {
+		return err
+	}
+
+	i.Reset()
+	scanner := bufio.NewScanner(fileIn)
+	for scanner.Scan() {
+		line := scanner.Text()
+		stmt, err := ParseStatement(line)
+		if err == nil {
+			i.UpsertLine(stmt)
+		} else {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *Interpreter) Reset() {
+	i.prog = newProgram()
+	i.env = eval.Env{}
 }

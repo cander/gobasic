@@ -29,9 +29,8 @@ func readLoop(intr gobasic.Interpreter) error {
 			return err
 		}
 
-		fmt.Printf("read input: %s\n", input)
 		if input != "" {
-			if err := parseUserCommand(input, intr); err != nil {
+			if err := parseUserCommand(input, &intr); err != nil {
 				fmt.Printf("ERROR: %v\n", err)
 			}
 		}
@@ -43,7 +42,7 @@ func readLoop(intr gobasic.Interpreter) error {
 	return nil
 }
 
-func parseUserCommand(cmdLine string, intr gobasic.Interpreter) error {
+func parseUserCommand(cmdLine string, intr *gobasic.Interpreter) error {
 	toks := strings.Fields(cmdLine)
 	cmd := strings.ToUpper(toks[0])
 
@@ -61,6 +60,14 @@ func parseUserCommand(cmdLine string, intr gobasic.Interpreter) error {
 			intr.Dump()
 		case "LIST":
 			intr.List()
+		case "LOAD":
+			if len(toks) != 2 {
+				return fmt.Errorf("invalid LOAD command: %s", cmdLine)
+			}
+			err := intr.Load(toks[1])
+			if err != nil {
+				fmt.Printf("Error loading file: %s\n", err)
+			}
 		case "RUN":
 			intr.Run()
 		default:
