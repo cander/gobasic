@@ -1,4 +1,7 @@
 # A BASIC Interpreter in Go
+
+[![Go CI/CD](https://github.com/cander/gobasic/actions/workflows/commit-actions.yaml/badge.svg)](https://github.com/cander/gobasic/actions/workflows/commit-actions.yaml)
+
 This is a simple BASIC interpreter implement in Go. It's not intended for anything resembling real use.
 It's not intended to implement most/all of any BASIC dialect. It's not intended to be the best/fastest/optimal
 implementation. It's just a little sandbox.
