@@ -6,6 +6,12 @@ This is a simple BASIC interpreter implement in Go. It's not intended for anythi
 It's not intended to implement most/all of any BASIC dialect. It's not intended to be the best/fastest/optimal
 implementation. It's just a little sandbox.
 
+## Usage
+```
+go run repl.go
+```
+Then, enter statements like `10 print "hello world"` or `run`.
+
 ## Why?
 Way back when, I reimplemented the original Pascal compiler in C as an
 exercise to learn C and to work with a real compiler (after university).
@@ -20,5 +26,5 @@ still used [UUCP](https://en.wikipedia.org/wiki/UUCP) to access
 [Usenet](https://en.wikipedia.org/wiki/Usenet), someone posted a
 [BASIC interpreter implemented entirely in Bourne Shell](https://gist.github.com/cander/2785819)
 (`sh` - long before `bash`, `zsh`,
-etc.).  At the time I was amazed by the painful lengths he went through to
-parse and execute a BASIC program. I figured there had to be a better way
+etc.).  At the time I was amazed by the painful lengths the author went through to
+parse and execute a BASIC program. I figured there had to be a better way.
